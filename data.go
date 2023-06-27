@@ -34,6 +34,12 @@ func Users() []User {
 			8000.0,
 		},
 		{
+			"\n",
+			-10,
+			true,
+			8000.0,
+		},
+		{
 			"Vm0weE5GVXhUblJWV0dSUFZtMW9WVll3WkRSV1ZteDBaRVYwVmsxWGVGWlZiVEZIWVd4S2MxTnNiR0ZXVm5Cb1ZsVmFWMVpWTVVWaGVqQTk=\nVm0weE5GVXhUblJWV0dSUFZtMW9WVll3WkRSV1ZteDBaRVYwVmsxWGVGWlZiVEZIWVd4S2MxTnNiR0ZXVm5Cb1ZsVmFWMVpWTVVWaGVqQTk=",
 			0,
 			true,
@@ -44,6 +50,12 @@ func Users() []User {
 			0,
 			true,
 			0,
+		},
+		{
+			"Billy Bones",
+			-130000,
+			false,
+			3141567.98765456789,
 		},
 	}
 }
