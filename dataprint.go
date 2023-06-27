@@ -68,8 +68,14 @@ func lenString(s string) (width int) {
 }
 
 func lenInt(num int) (width int) {
-	for
+	if num == 0 {
+		return 1
+	}
 	if num < 0 {
+		width++
+	}
+	for num != 0 {
+		num /= 10
 		width++
 	}
 	return width
