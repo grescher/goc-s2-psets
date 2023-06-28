@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -64,7 +65,8 @@ func tablePrint(users []User, maxTableWidth int) {
 }
 
 func lenString(s string) (width int) {
-	return width
+	width, _ = fmt.Fprintf(io.Discard, "%q", s)
+	return width - 2 // Extract the quotation marks
 }
 
 func lenInt(num int) (width int) {
