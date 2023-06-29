@@ -54,6 +54,33 @@ func TestLenInt(t *testing.T) {
 	}
 }
 
+func TestLenFloat64(t *testing.T) {
+	fName := "lenFloat64"
+	tests := []struct {
+		in        float64
+		precision int
+		want      int
+	}{
+		{in: 0, precision: 5, want: 3},
+		{in: 0.0, precision: 5, want: 3},
+		{in: 0.75, precision: 5, want: 4},
+		{in: .75, precision: 5, want: 4},
+		{in: 80, precision: 5, want: 4},
+		{in: 80.0, precision: 5, want: 4},
+		{in: 3141567.98765456789, precision: 5, want: 13},
+		{in: 3141567.98700456789, precision: 5, want: 11},
+		{in: 3141567.98765456789, precision: 8, want: 16},
+	}
+	for _, tt := range tests {
+		if got := lenFloat64(tt.in, tt.precision); got != tt.want {
+			t.Errorf(
+				"%s(%.*f, %d) = %d; want: %d\n",
+				fName, tt.precision, tt.in, tt.precision, got, tt.want,
+			)
+		}
+	}
+}
+
 func errorString(fName string, in, got, want interface{}) string {
 	return fmt.Sprintf(
 		"%s(%#v) = %#v; want: %#v\n", fName, in, got, want,

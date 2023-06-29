@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/term"
 )
@@ -84,5 +86,11 @@ func lenInt(num int) (width int) {
 }
 
 func lenFloat64(num float64, precision int) (width int) {
+	s := fmt.Sprintf("%.*f", precision, num)
+	s = strings.TrimRight(s, "0")
+	width = len(s)
+	if r, _ := utf8.DecodeLastRuneInString(s); r == '.' {
+		return width + 1
+	}
 	return width
 }
