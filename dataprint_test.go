@@ -57,25 +57,27 @@ func TestLenInt(t *testing.T) {
 func TestLenFloat64(t *testing.T) {
 	fName := "lenFloat64"
 	tests := []struct {
-		in        float64
-		precision int
-		want      int
+		in       float64
+		prec     int
+		wantLen  int
+		wantPrec int
 	}{
-		{in: 0, precision: 5, want: 3},
-		{in: 0.0, precision: 5, want: 3},
-		{in: 0.75, precision: 5, want: 4},
-		{in: .75, precision: 5, want: 4},
-		{in: 80, precision: 5, want: 4},
-		{in: 80.0, precision: 5, want: 4},
-		{in: 3141567.98765456789, precision: 5, want: 13},
-		{in: 3141567.98700456789, precision: 5, want: 11},
-		{in: 3141567.98765456789, precision: 8, want: 16},
+		{in: 0, prec: 5, wantLen: 3, wantPrec: 1},
+		{in: 0.0, prec: 5, wantLen: 3, wantPrec: 1},
+		{in: 0.75, prec: 5, wantLen: 4, wantPrec: 2},
+		{in: .75, prec: 5, wantLen: 4, wantPrec: 2},
+		{in: 80, prec: 5, wantLen: 4, wantPrec: 1},
+		{in: 80.0, prec: 5, wantLen: 4, wantPrec: 1},
+		{in: 3141567.98765456789, prec: 5, wantLen: 13, wantPrec: 5},
+		{in: 3141567.98700456789, prec: 5, wantLen: 11, wantPrec: 3},
+		{in: 3141567.98765456789, prec: 8, wantLen: 16, wantPrec: 8},
 	}
 	for _, tt := range tests {
-		if got := lenFloat64(tt.in, tt.precision); got != tt.want {
+		gotLen, gotPrec := lenFloat64(tt.in, tt.prec)
+		if gotLen != tt.wantLen || gotPrec != tt.wantPrec {
 			t.Errorf(
-				"%s(%.*f, %d) = %d; want: %d\n",
-				fName, tt.precision, tt.in, tt.precision, got, tt.want,
+				"%s(%.*f, %d) = %d, %d; want: %d, %d\n",
+				fName, tt.prec, tt.in, tt.prec, gotLen, gotPrec, tt.wantLen, tt.wantPrec,
 			)
 		}
 	}
