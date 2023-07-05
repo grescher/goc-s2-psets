@@ -83,6 +83,84 @@ func TestLenFloat64(t *testing.T) {
 	}
 }
 
+func TestSetLine(t *testing.T) {
+	fName := "setLine"
+	type In struct {
+		s   string
+		wof int
+	}
+	type Want struct {
+		s            string
+		line         string
+		isSingleLine bool
+	}
+	tests := []struct {
+		in   In
+		want Want
+	}{
+		{
+			in: In{
+				s:   "0123456789012345678901234567890",
+				wof: 8,
+			},
+			want: Want{
+				s:            "89012345678901234567890",
+				line:         "01234567",
+				isSingleLine: false,
+			},
+		},
+		{
+			in: In{
+				s:   "0123456789012345678901234567890",
+				wof: 20,
+			},
+			want: Want{
+				s:            "01234567890",
+				line:         "01234567890123456789",
+				isSingleLine: false,
+			},
+		},
+		{
+			in: In{
+				s:   "abcdefgh",
+				wof: 8,
+			},
+			want: Want{
+				s:            "",
+				line:         "abcdefgh",
+				isSingleLine: true,
+			},
+		},
+		{
+			in: In{
+				s:   "abc",
+				wof: 8,
+			},
+			want: Want{
+				s:            "",
+				line:         "abc     ",
+				isSingleLine: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		gotStr := tt.in.s
+		gotLine, gotIsSingleLine := setLine(&gotStr, tt.in.wof)
+		if gotLine != tt.want.line ||
+			gotIsSingleLine != tt.want.isSingleLine ||
+			gotStr != tt.want.s {
+			t.Errorf(
+				"%s(%q, %d):\n"+
+					" got s: %q, line: %q, single line: %t\n"+
+					"want s: %q, line: %q, single line: %t\n",
+				fName, tt.in.s, tt.in.wof,
+				gotStr, gotLine, gotIsSingleLine,
+				tt.want.s, tt.want.line, tt.want.isSingleLine,
+			)
+		}
+	}
+}
+
 func errorString(fName string, in, got, want interface{}) string {
 	return fmt.Sprintf(
 		"%s(%#v) = %#v; want: %#v\n", fName, in, got, want,

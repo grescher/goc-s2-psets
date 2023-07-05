@@ -51,11 +51,5 @@ func Users() []User {
 			true,
 			0,
 		},
-		{
-			"Billy Bones",
-			-130000,
-			false,
-			3141567.98765456789,
-		},
 	}
 }
