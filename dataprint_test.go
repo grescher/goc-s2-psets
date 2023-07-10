@@ -1,168 +1,94 @@
 package main
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 )
 
-func TestLenString(t *testing.T) {
-	fName := "lenString"
-	tests := []struct {
-		in   string
-		want int
-	}{
-		{in: "", want: 0},
-		{in: " ", want: 1},
-		{in: "a", want: 1},
-		{in: "Aa", want: 2},
-		{in: "\t", want: 2},
-		{in: "\n", want: 2},
-		{in: "Aa@", want: 3},
-		{in: "\x00", want: 4},
-		{in: " Jane Doe ", want: 10},
-		// {in: "\x00\x10\x20\x30\x40\x50\x60\x70", want: 32},
-	}
-	for _, tt := range tests {
-		if got := lenString(tt.in); got != tt.want {
-			t.Errorf(errorString(fName, tt.in, got, tt.want))
-		}
-	}
-}
-
-func TestLenInt(t *testing.T) {
-	fName := "lenInt"
-	tests := []struct {
-		in   int
-		want int
-	}{
-		{in: 0, want: 1},
-		{in: -0, want: 1},
-		{in: 1, want: 1},
-		{in: 9, want: 1},
-		{in: -1, want: 2},
-		{in: -9, want: 2},
-		{in: 22, want: 2},
-		{in: -22, want: 3},
-		{in: 333, want: 3},
-		{in: -999, want: 4},
-		{in: 9999, want: 4},
-	}
-	for _, tt := range tests {
-		if got := lenInt(tt.in); got != tt.want {
-			t.Errorf(errorString(fName, tt.in, got, tt.want))
-		}
-	}
-}
-
-func TestLenFloat64(t *testing.T) {
-	fName := "lenFloat64"
-	tests := []struct {
-		in       float64
-		prec     int
-		wantLen  int
-		wantPrec int
-	}{
-		{in: 0, prec: 5, wantLen: 3, wantPrec: 1},
-		{in: 0.0, prec: 5, wantLen: 3, wantPrec: 1},
-		{in: 0.75, prec: 5, wantLen: 4, wantPrec: 2},
-		{in: .75, prec: 5, wantLen: 4, wantPrec: 2},
-		{in: 80, prec: 5, wantLen: 4, wantPrec: 1},
-		{in: 80.0, prec: 5, wantLen: 4, wantPrec: 1},
-		{in: 3141567.98765456789, prec: 5, wantLen: 13, wantPrec: 5},
-		{in: 3141567.98700456789, prec: 5, wantLen: 11, wantPrec: 3},
-		{in: 3141567.98765456789, prec: 8, wantLen: 16, wantPrec: 8},
-	}
-	for _, tt := range tests {
-		gotLen, gotPrec := lenFloat64(tt.in, tt.prec)
-		if gotLen != tt.wantLen || gotPrec != tt.wantPrec {
-			t.Errorf(
-				"%s(%.*f, %d) = %d, %d; want: %d, %d\n",
-				fName, tt.prec, tt.in, tt.prec, gotLen, gotPrec, tt.wantLen, tt.wantPrec,
-			)
-		}
-	}
-}
-
-func TestSetLine(t *testing.T) {
-	fName := "setLine"
-	type In struct {
-		s   string
-		wof int
-	}
-	type Want struct {
-		s            string
-		line         string
-		isSingleLine bool
+func TestNewUsersToPrint(t *testing.T) {
+	type args struct {
+		users   []User
+		headers []string
 	}
 	tests := []struct {
-		in   In
-		want Want
+		name    string
+		args    args
+		wantRes UsersToPrint
 	}{
 		{
-			in: In{
-				s:   "0123456789012345678901234567890",
-				wof: 8,
+			name: "Test",
+			args: args{
+				users: []User{
+					{"John Doe", 30, true, 80.0, []string{"Harry Potter", "1984"}},
+					{"Jake Doe", 20, false, 60.0, []string{}},
+					{" Jane Doe ", 150, true, .75, []string{"Harry Potter", "Game of Thrones"}},
+				},
+				headers: []string{"Name", "Age", "Active", "Mass", "Books"},
 			},
-			want: Want{
-				s:            "89012345678901234567890",
-				line:         "01234567",
-				isSingleLine: false,
-			},
-		},
-		{
-			in: In{
-				s:   "0123456789012345678901234567890",
-				wof: 20,
-			},
-			want: Want{
-				s:            "01234567890",
-				line:         "01234567890123456789",
-				isSingleLine: false,
-			},
-		},
-		{
-			in: In{
-				s:   "abcdefgh",
-				wof: 8,
-			},
-			want: Want{
-				s:            "",
-				line:         "abcdefgh",
-				isSingleLine: true,
-			},
-		},
-		{
-			in: In{
-				s:   "abc",
-				wof: 8,
-			},
-			want: Want{
-				s:            "",
-				line:         "abc     ",
-				isSingleLine: true,
+			wantRes: UsersToPrint{
+				Header: []string{"Name", "Age", "Active", "Mass", "Books"},
+				Rows: []RowField{
+					{
+						"Name":   "John Doe",
+						"Age":    "30",
+						"Active": "yes",
+						"Mass":   "80.0 kg",
+						"Books":  "\"Harry Potter\"\n\"1984\"",
+					},
+					{
+						"Name":   "Jake Doe",
+						"Age":    "20",
+						"Active": "-",
+						"Mass":   "60.0 kg",
+						"Books":  "",
+					},
+					{
+						"Name":   " Jane Doe ",
+						"Age":    "150",
+						"Active": "yes",
+						"Mass":   "0.75 qq",
+						"Books":  "\"Harry Potter\"\n\"Game of Thrones\"",
+					},
+				},
+				ColumnWidth: map[string]int{"Name": 10, "Age": 3, "Active": 6, "Mass": 7, "Books": 17},
 			},
 		},
 	}
 	for _, tt := range tests {
-		gotStr := tt.in.s
-		gotLine, gotIsSingleLine := setLine(&gotStr, tt.in.wof)
-		if gotLine != tt.want.line ||
-			gotIsSingleLine != tt.want.isSingleLine ||
-			gotStr != tt.want.s {
-			t.Errorf(
-				"%s(%q, %d):\n"+
-					" got s: %q, line: %q, single line: %t\n"+
-					"want s: %q, line: %q, single line: %t\n",
-				fName, tt.in.s, tt.in.wof,
-				gotStr, gotLine, gotIsSingleLine,
-				tt.want.s, tt.want.line, tt.want.isSingleLine,
-			)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			if gotRes := NewUsersToPrint(tt.args.users, tt.args.headers); !reflect.DeepEqual(gotRes, tt.wantRes) {
+				t.Errorf("NewUsersToPrint() = %#v, want %#v", gotRes, tt.wantRes)
+			}
+		})
 	}
 }
 
-func errorString(fName string, in, got, want interface{}) string {
-	return fmt.Sprintf(
-		"%s(%#v) = %#v; want: %#v\n", fName, in, got, want,
-	)
+func Test_chunk(t *testing.T) {
+	type args struct {
+		str        string
+		widthLimit int
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantCh     string
+		wantNewStr string
+		wantOk     bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotCh, gotNewStr, gotOk := chunk(tt.args.str, tt.args.widthLimit)
+			if gotCh != tt.wantCh {
+				t.Errorf("chunk() gotCh = %v, want %v", gotCh, tt.wantCh)
+			}
+			if gotNewStr != tt.wantNewStr {
+				t.Errorf("chunk() gotNewStr = %v, want %v", gotNewStr, tt.wantNewStr)
+			}
+			if gotOk != tt.wantOk {
+				t.Errorf("chunk() gotOk = %v, want %v", gotOk, tt.wantOk)
+			}
+		})
+	}
 }

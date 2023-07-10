@@ -2,6 +2,7 @@ package main
 
 func main() {
 	users := Users()
+	headers := []string{"Name", "Age", "Active", "Mass", "Books"}
 
-	DataPrint(users)
+	PrintData(users, headers)
 }
