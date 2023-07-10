@@ -1,8 +1,15 @@
 package main
 
-func main() {
-	users := Users()
-	headers := []string{"Name", "Age", "Active", "Mass", "Books"}
+import "fmt"
 
-	PrintData(users, headers)
+func main() {
+	users := UserSlice(Users())
+	PrintData(users, UserHeaders)
+	fmt.Println("Books Stats:")
+
+}
+
+func PrintData(data TablePrinter, headers []string) {
+	table := data.NewTable(headers)
+	table.Print()
 }

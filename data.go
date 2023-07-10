@@ -8,6 +8,25 @@ type User struct {
 	Books  []string
 }
 
+var UserHeaders = []string{"Name", "Age", "Active", "Mass", "Books"}
+
+type UserSlice []User
+
+func (users UserSlice) NewTable(headers []string) (res Table) {
+	res.Header = headers
+	for _, user := range users {
+		field := make(RowField)
+		field[res.Header[0]] = Name(user.Name).String()
+		field[res.Header[1]] = Age(user.Age).String()
+		field[res.Header[2]] = Active(user.Active).String()
+		field[res.Header[3]] = Mass(user.Mass).String()
+		field[res.Header[4]] = Books(user.Books).String()
+
+		res.Rows = append(res.Rows, field)
+	}
+	return res
+}
+
 func Users() []User {
 	return []User{
 		{

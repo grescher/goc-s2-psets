@@ -14,41 +14,30 @@ const (
 
 type RowField map[string]string
 
-type UsersToPrint struct {
+type Table struct {
 	Header      []string
 	Rows        []RowField
 	ColumnWidth map[string]int
 }
 
-func PrintData(users []User, headers []string) {
-	usersToPrint := NewUsersToPrint(users, headers)
-	usersToPrint.TablePrint()
+type TablePrinter interface {
+	NewTable([]string) Table
 }
 
-func NewUsersToPrint(users []User, headers []string) (res UsersToPrint) {
-	res.Header = headers
-	for _, user := range users {
-		field := make(RowField)
-		field[res.Header[0]] = Name(user.Name).String()
-		field[res.Header[1]] = Age(user.Age).String()
-		field[res.Header[2]] = Active(user.Active).String()
-		field[res.Header[3]] = Mass(user.Mass).String()
-		field[res.Header[4]] = Books(user.Books).String()
-
-		res.Rows = append(res.Rows, field)
-	}
-	res.setColumnWidth()
-
-	return res
+func (t *Table) Print() {
+	t.setColumnWidth()
+	t.printHeaders()
+	t.printSeparator()
+	t.printRows()
 }
 
-func (utp *UsersToPrint) setColumnWidth() {
+func (t *Table) setColumnWidth() {
 	cw := make(map[string]int)
-	for _, h := range utp.Header {
+	for _, h := range t.Header {
 		cw[h] = utf8.RuneCountInString(h)
 	}
-	for _, fields := range utp.Rows {
-		for _, h := range utp.Header {
+	for _, fields := range t.Rows {
+		for _, h := range t.Header {
 			newlines := strings.Split(fields[h], "\n")
 			for _, line := range newlines {
 				width := utf8.RuneCountInString(line)
@@ -61,21 +50,15 @@ func (utp *UsersToPrint) setColumnWidth() {
 			}
 		}
 	}
-	utp.ColumnWidth = cw
+	t.ColumnWidth = cw
 }
 
-func (u *UsersToPrint) TablePrint() {
-	u.printHeaders()
-	u.printSeparator()
-	u.printRows()
-}
-
-func (u *UsersToPrint) printHeaders() {
+func (t *Table) printHeaders() {
 	var fields []string
-	for _, h := range u.Header {
+	for _, h := range t.Header {
 		lenOfH := utf8.RuneCountInString(h)
-		left := (u.ColumnWidth[h]-lenOfH)/2 + lenOfH
-		right := u.ColumnWidth[h] - left
+		left := (t.ColumnWidth[h]-lenOfH)/2 + lenOfH
+		right := t.ColumnWidth[h] - left
 		field := fmt.Sprintf(" %*s%*s ", left, h, right, "")
 		fields = append(fields, field)
 	}
@@ -83,19 +66,19 @@ func (u *UsersToPrint) printHeaders() {
 	fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, headerLine)
 }
 
-func (u *UsersToPrint) printSeparator() {
+func (t *Table) printSeparator() {
 	var fields []string
-	for _, h := range u.Header {
-		line := strings.Repeat(separatorLine, u.ColumnWidth[h]+2)
+	for _, h := range t.Header {
+		line := strings.Repeat(separatorLine, t.ColumnWidth[h]+2)
 		fields = append(fields, line)
 	}
 	line := strings.Join(fields, separatorCol)
 	fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, line)
 }
 
-func (u *UsersToPrint) printRows() {
-	for _, row := range u.Rows {
-		lines := getLinesToPrint(u.Header, u.ColumnWidth, row)
+func (t *Table) printRows() {
+	for _, row := range t.Rows {
+		lines := getLinesToPrint(t.Header, t.ColumnWidth, row)
 
 		for _, line := range lines {
 			fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, line)
