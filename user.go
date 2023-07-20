@@ -10,6 +10,35 @@ const (
 	ozPerKg       = 35.273962
 )
 
+type User struct {
+	Name   string
+	Age    int
+	Active bool
+	Mass   float64
+	Books  []string
+}
+
+func Users(data []User) []User {
+	return data
+}
+
+type UserSlice []User
+
+func (users UserSlice) NewTable(headers []string) (res Table) {
+	res.Header = headers
+	for _, user := range users {
+		field := make(RowField)
+		field[res.Header[0]] = Name(user.Name).String()
+		field[res.Header[1]] = Age(user.Age).String()
+		field[res.Header[2]] = Active(user.Active).String()
+		field[res.Header[3]] = Mass(user.Mass).String()
+		field[res.Header[4]] = Books(user.Books).String()
+
+		res.Rows = append(res.Rows, field)
+	}
+	return res
+}
+
 type Name string
 
 func (n Name) String() string {
