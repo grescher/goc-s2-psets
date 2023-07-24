@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -37,6 +40,22 @@ func (users UserSlice) NewTable(headers []string) (res Table) {
 		res.Rows = append(res.Rows, field)
 	}
 	return res
+}
+
+func (u UserSlice) FindMass(m float64) (find User, ok bool) {
+	users := make([]User, len(u))
+	copy(users, u)
+	slices.SortFunc[User](users, func(a, b User) bool {
+		return a.Mass < b.Mass
+	})
+
+	idx, ok := slices.BinarySearchFunc[User, float64](users, m, func(u User, f float64) int {
+		return int(math.Round(u.Mass - f))
+	})
+	if ok {
+		find = users[idx]
+	}
+	return find, ok
 }
 
 type Name string

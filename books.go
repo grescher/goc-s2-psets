@@ -11,9 +11,7 @@ type AvgAgePerBook struct {
 	AvgAge    int
 }
 
-var APBHeaders = []string{"Book Title", "Avg.Age"}
-
-func avgAgeOfReadersPerBook(users UserSlice) (apb AvgAgePerBookSlice) {
+func avgAgeOfReadersPerBook(users []User) (apb AvgAgePerBookSlice) {
 	tmp := make(map[string]float64)
 	for _, u := range users {
 		for _, book := range u.Books {
@@ -39,7 +37,7 @@ type AvgAgePerBookSlice []AvgAgePerBook
 func (a AvgAgePerBookSlice) SortByAge() {
 	b := []AvgAgePerBook(a)
 	slices.SortFunc[AvgAgePerBook](b, func(x, y AvgAgePerBook) bool {
-		return x.AvgAge < y.AvgAge
+		return x.AvgAge > y.AvgAge
 	})
 }
 
