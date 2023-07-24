@@ -9,6 +9,7 @@ import (
 const (
 	widthLimit    = 60
 	separatorCol  = "|"
+	separatorRow  = "+"
 	separatorLine = "-"
 )
 
@@ -27,7 +28,7 @@ type TablePrinter interface {
 func (t *Table) Print() {
 	t.setColumnWidth()
 	t.printHeaders()
-	t.printSeparator()
+	t.printSeparator(separatorCol)
 	t.printRows()
 }
 
@@ -66,13 +67,13 @@ func (t *Table) printHeaders() {
 	fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, headerLine)
 }
 
-func (t *Table) printSeparator() {
+func (t *Table) printSeparator(sep string) {
 	var fields []string
 	for _, h := range t.Header {
 		line := strings.Repeat(separatorLine, t.ColumnWidth[h]+2)
 		fields = append(fields, line)
 	}
-	line := strings.Join(fields, separatorCol)
+	line := strings.Join(fields, sep)
 	fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, line)
 }
 
@@ -83,6 +84,7 @@ func (t *Table) printRows() {
 		for _, line := range lines {
 			fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, line)
 		}
+		t.printSeparator(separatorRow)
 	}
 }
 
