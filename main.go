@@ -8,19 +8,9 @@ import (
 
 func main() {
 	users := UserSlice(Users(data))
-
-	// Practice #1: print the table with a users data.
-	userHeaders := []string{"Name", "Age", "Active", "Mass", "Books"}
-	PrintData(users, userHeaders)
-
-	// Practice #2: print the average age of readers for each book.
-	fmt.Println("\nBooks Stats:")
+	userHeaders := []string{"Name", "Type", "Age", "Active", "Mass", "Books"}
 	avgAgeBooks := avgAgeOfReadersPerBook(users)
-	averagePerBookHeaders := []string{"Book Title", "Avg.Age"}
-	PrintData(avgAgeBooks, averagePerBookHeaders)
 
-	// Practice #3:
-	fmt.Println("\nSort users by the sum of the average age of the reader for each book they read:")
 	sortUsersBySumOfAvgAge(users, avgAgeBooks)
 	PrintData(users, userHeaders)
 
