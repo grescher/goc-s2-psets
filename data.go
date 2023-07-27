@@ -3,6 +3,7 @@ package main
 var data []User = []User{
 	{
 		"John Doe",
+		Organizer,
 		30,
 		true,
 		80.0,
@@ -10,6 +11,7 @@ var data []User = []User{
 	},
 	{
 		"Jake Doe",
+		CasualReader,
 		20,
 		false,
 		60.0,
@@ -17,6 +19,7 @@ var data []User = []User{
 	},
 	{
 		" Jane Doe ",
+		PoetryLover,
 		150,
 		true,
 		.75,
@@ -24,6 +27,7 @@ var data []User = []User{
 	},
 	{
 		"\t",
+		NewbieReader,
 		-10,
 		true,
 		8000.0,
@@ -31,6 +35,7 @@ var data []User = []User{
 	},
 	{
 		"Vm0weE5GVXhUblJWV0dSUFZtMW9WVll3WkRSV1ZteDBaRVYwVmsxWGVGWlZiVEZIWVd4S2MxTnNiR0ZXVm5Cb1ZsVmFWMVpWTVVWaGVqQTk=\nVm0weE5GVXhUblJWV0dSUFZtMW9WVll3WkRSV1ZteDBaRVYwVmsxWGVGWlZiVEZIWVd4S2MxTnNiR0ZXVm5Cb1ZsVmFWMVpWTVVWaGVqQTk=",
+		Critic,
 		0,
 		true,
 		0,
@@ -38,6 +43,7 @@ var data []User = []User{
 	},
 	{
 		"\x00\x10\x20\x30\x40\x50\x60\x70",
+		SciFiFan,
 		0,
 		true,
 		0,
