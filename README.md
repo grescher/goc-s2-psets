@@ -7,3 +7,4 @@
 |  3 | Відсортувати користувачів за сумою середн. віку читача кожної книжки ... | [#5](https://github.com/grescher/goc-s2-psets/issues/5) | [p3.0](https://github.com/grescher/goc-s2-psets/releases/tag/p3.0) |
 |  4 | Типізовані константи: додати поле "тип користувача"...         | [#6](https://github.com/grescher/goc-s2-psets/issues/6) | [p4.0](https://github.com/grescher/goc-s2-psets/releases/tag/p4.0) |
 |  5 | Декодування даних з бінарного буферу                           | [#8](https://github.com/grescher/goc-s2-psets/issues/8) | [p5.0](https://github.com/grescher/goc-s2-psets/releases/tag/p5.0) |
+|  6 | Спільний індекс — стан активності користувачі                  | [#10](https://github.com/grescher/goc-s2-psets/issues/10) | |
