@@ -2,20 +2,26 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"golang.org/x/exp/slices"
 )
 
 func main() {
-	users := UserSlice(Users(data))
-	userHeaders := []string{"Name", "Type", "Age", "Active", "Mass", "Books"}
+	users, err := Users(Reader())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	userHeaders := []string{"Name", "Age", "Active", "Mass", "Books"}
 	avgAgeBooks := avgAgeOfReadersPerBook(users)
 
+	fmt.Println("\nSort users by the sum of the average age of the reader for each book they read:")
 	sortUsersBySumOfAvgAge(users, avgAgeBooks)
-	PrintData(users, userHeaders)
+	PrintData(UserSlice(users), userHeaders)
 
 	fmt.Println("\nUser who have the mass as close to 80kg as possible:")
-	if find, ok := users.FindMass(80); ok {
+	if find, ok := UserSlice(users).FindMass(80); ok {
 		PrintData(UserSlice{find}, userHeaders)
 	}
 }
