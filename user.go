@@ -13,54 +13,6 @@ const (
 	ozPerKg       = 35.273962
 )
 
-type TypeOfUser int8
-
-const (
-	Undefined TypeOfUser = iota
-	Organizer
-	Critic
-	NewbieReader
-	CasualReader
-	NonFictionBuff
-	PoetryLover
-	SciFiFan
-)
-
-func (t TypeOfUser) String() (s string) {
-	switch t {
-	case Undefined:
-		s = "Undefined"
-	case Organizer:
-		s = "Organizer"
-	case Critic:
-		s = "Critic"
-	case NewbieReader:
-		s = "NewbieReader"
-	case CasualReader:
-		s = "CasualReader"
-	case NonFictionBuff:
-		s = "NonFictionBuff"
-	case PoetryLover:
-		s = "PoetryLover"
-	case SciFiFan:
-		s = "SciFiFan"
-	}
-	return s
-}
-
-type User struct {
-	Name   string
-	Type   TypeOfUser
-	Age    int
-	Active bool
-	Mass   float64
-	Books  []string
-}
-
-func Users(data []User) []User {
-	return data
-}
-
 type UserSlice []User
 
 func (users UserSlice) NewTable(headers []string) (res Table) {
@@ -68,11 +20,10 @@ func (users UserSlice) NewTable(headers []string) (res Table) {
 	for _, user := range users {
 		field := make(RowField)
 		field[res.Header[0]] = Name(user.Name).String()
-		field[res.Header[1]] = user.Type.String()
-		field[res.Header[2]] = Age(user.Age).String()
-		field[res.Header[3]] = Active(user.Active).String()
-		field[res.Header[4]] = Mass(user.Mass).String()
-		field[res.Header[5]] = Books(user.Books).String()
+		field[res.Header[1]] = Age(user.Age).String()
+		field[res.Header[2]] = Active(user.Active).String()
+		field[res.Header[3]] = Mass(user.Mass).String()
+		field[res.Header[4]] = Books(user.Books).String()
 
 		res.Rows = append(res.Rows, field)
 	}
