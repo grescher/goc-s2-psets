@@ -9,20 +9,23 @@ import (
 )
 
 const (
-	ActiveMask = 1 << 63
-	AgeMask    = math.MaxUint64 ^ ActiveMask
+	ActiveMask    = 1 << 63
+	AgeMask       = math.MaxUint64 ^ ActiveMask
+	maxNumOfUsers = 8
+	kgPerOz       = 0.0283495
+	kgPerQq       = 100.0
 )
 
 type User struct {
-	Name   string   // uint8(length) + [length]byte
-	Age    uint64   // 1 bit bool (active field) + 63 bit uint (age field)
-	Active bool     // (see above)
-	Mass   float64  // regular float64
-	Books  []string // uint8(all books length) + [length]byte, all books come as a single comma-separated string
+	Name        string   // uint8(length) + [length]byte
+	Age         uint8    // 1 bit bool (active field) + 63 bit uint (age field)
+	ActiveIndex uint8    // (see above)
+	Mass        float64  // regular float64
+	Books       []string // uint8(all books length) + [length]byte, all books come as a single comma-separated string
 }
 
 func Users(r io.Reader) (out []User, err error) {
-	for err != io.EOF {
+	for err != io.EOF && len(out) < maxNumOfUsers {
 		var nameLength uint8
 		if err = binary.Read(r, binary.BigEndian, &nameLength); err != nil {
 			break
@@ -35,9 +38,9 @@ func Users(r io.Reader) (out []User, err error) {
 		if err = binary.Read(r, binary.BigEndian, &activeAndAge); err != nil {
 			break
 		}
-		var active bool
+		var active uint8
 		if activeAndAge&ActiveMask > 0 {
-			active = true
+			active = 1
 		}
 		var mass float64
 		if err = binary.Read(r, binary.BigEndian, &mass); err != nil {
@@ -53,17 +56,27 @@ func Users(r io.Reader) (out []User, err error) {
 		}
 
 		var user User
-		user.Name = string(name)
-		user.Active = active
-		user.Age = activeAndAge & AgeMask
-		user.Mass = mass
+		user.Name = strings.TrimSpace(string(name))
+		user.ActiveIndex = active << len(out)
+		user.Age = uint8(activeAndAge & AgeMask)
+		user.Mass = verifyMass(mass)
 		user.Books = strings.Split(string(books), ",")
 		out = append(out, user)
 	}
-	if err != io.EOF {
+	if len(out) != maxNumOfUsers && err != io.EOF {
 		return nil, err
 	}
 	return out, nil
+}
+
+func verifyMass(m float64) float64 {
+	switch {
+	case m > 0.0009 && m < 1: // quintals to kg
+		m = m * kgPerQq
+	case m > 620:
+		m = m * kgPerOz // ounces to kg
+	}
+	return m
 }
 
 func Reader() io.Reader {
