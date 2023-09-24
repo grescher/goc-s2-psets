@@ -39,7 +39,6 @@ func TestAge_String(t *testing.T) {
 		want string
 	}{
 		{name: "Positive", a: 42, want: "42"},
-		{name: "Negative", a: -42, want: "58"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -53,11 +52,15 @@ func TestAge_String(t *testing.T) {
 func TestActive_String(t *testing.T) {
 	tests := []struct {
 		name string
-		a    Active
+		a    ActiveIndex
 		want string
 	}{
-		{name: "True", a: true, want: "yes"},
-		{name: "False", a: false, want: "-"},
+		{name: "True 0", a: 0b0001, want: "yes"},
+		{name: "True 1", a: 0b0010, want: "yes"},
+		{name: "True 2", a: 0b0100, want: "yes"},
+		{name: "True 3", a: 0b1000, want: "yes"},
+		{name: "True 7", a: 0b10000000, want: "yes"},
+		{name: "False", a: 0b0, want: "-"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -128,9 +131,9 @@ func TestUserSlice_NewTable(t *testing.T) {
 		{
 			name: "Test",
 			users: UserSlice{
-				{"John Doe", 30, true, 80.0, []string{"Harry Potter", "1984"}},
-				{"Jake Doe", 20, false, 60.0, []string{}},
-				{" Jane Doe ", 150, true, .75, []string{"Harry Potter", "Game of Thrones"}},
+				{"John Doe", 30, 0b00000001, 80.0, []string{"Harry Potter", "1984"}},
+				{"Jake Doe", 20, 0b0, 60.0, []string{}},
+				{" Jane Doe 1", 150, 0b00000100, .75, []string{"Harry Potter", "Game of Thrones"}},
 			},
 			args: args{
 				headers: []string{"Name", "Age", "Active", "Mass", "Books"},

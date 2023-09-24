@@ -18,7 +18,7 @@ func avgAgeOfReadersPerBook(users []User) (apb AvgAgePerBookSlice) {
 			if _, ok := tmp[book]; !ok {
 				tmp[book] = float64(u.Age)
 			}
-			tmp[book] = (float64(Age(u.Age).Verify()) + tmp[book]) / 2.0
+			tmp[book] = (float64(Age(u.Age)) + tmp[book]) / 2.0
 		}
 	}
 

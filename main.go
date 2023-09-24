@@ -14,16 +14,10 @@ func main() {
 	}
 
 	userHeaders := []string{"Name", "Age", "Active", "Mass", "Books"}
-	avgAgeBooks := avgAgeOfReadersPerBook(users)
 
-	fmt.Println("\nSort users by the sum of the average age of the reader for each book they read:")
-	sortUsersBySumOfAvgAge(users, avgAgeBooks)
+	sortUsersBySumOfAvgAge(users, avgAgeOfReadersPerBook(users))
 	PrintData(UserSlice(users), userHeaders)
-
-	fmt.Println("\nUser who have the mass as close to 80kg as possible:")
-	if find, ok := UserSlice(users).FindMass(80); ok {
-		PrintData(UserSlice{find}, userHeaders)
-	}
+	fmt.Println("Number of active users:", UserSlice(users).NumOfActiveUsers())
 }
 
 func PrintData(data TablePrinter, headers []string) {
