@@ -1,0 +1,5 @@
+# Directory with the data files
+datafiles
+
+# VS Code
+.vscode/*
