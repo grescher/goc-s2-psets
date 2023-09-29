@@ -1,4 +1,4 @@
-package main
+package table
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ type Table struct {
 	ColumnWidth map[string]int
 }
 
-type TablePrinter interface {
+type Printer interface {
 	NewTable([]string) Table
 }
 

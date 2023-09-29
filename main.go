@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"practice/internal/storage"
+	"practice/internal/table"
+	"practice/internal/user"
 )
 
 func main() {
@@ -13,20 +15,25 @@ func main() {
 	}
 	defer storage.Close()
 
-	users, err := UsersDecode(storage.Reader())
+	users, err := user.Decode(storage.Reader())
 	if err != nil {
 		log.Fatal(err)
 	}
-	// defer storage.Write(users)
+	defer saveSnapshot(storage, &users)
 
 	userHeaders := []string{"Name", "Age", "Active", "Mass", "Books"}
 
-	sortUsersBySumOfAvgAge(users, avgAgeOfReadersPerBook(users))
-	PrintData(UserSlice(users), userHeaders)
-	fmt.Println("Number of active users:", UserSlice(users).NumOfActiveUsers())
+	user.SortUsersBySumOfAvgAge(users, user.AvgAgeOfReadersPerBook(users))
+	PrintData(user.Slice(users), userHeaders)
+	fmt.Println("Number of active users:", user.Slice(users).NumOfActiveUsers())
 }
 
-func PrintData(data TablePrinter, headers []string) {
+func saveSnapshot(storage *storage.Storage, users *[]user.User) {
+	data := user.Encode(*users)
+	storage.Write(data)
+}
+
+func PrintData(data table.Printer, headers []string) {
 	table := data.NewTable(headers)
 	table.Print()
 }

@@ -1,7 +1,8 @@
-package main
+package user
 
 import (
 	"math"
+	"practice/internal/table"
 
 	"golang.org/x/exp/slices"
 )
@@ -11,7 +12,7 @@ type AvgAgePerBook struct {
 	AvgAge    int
 }
 
-func avgAgeOfReadersPerBook(users []User) (apb AvgAgePerBookSlice) {
+func AvgAgeOfReadersPerBook(users []User) (apb AvgAgePerBookSlice) {
 	tmp := make(map[string]float64)
 	for _, u := range users {
 		for _, book := range u.Books {
@@ -41,10 +42,10 @@ func (a AvgAgePerBookSlice) SortByAge() {
 	})
 }
 
-func (a AvgAgePerBookSlice) NewTable(headers []string) (res Table) {
+func (a AvgAgePerBookSlice) NewTable(headers []string) (res table.Table) {
 	res.Header = headers
 	for _, ele := range a {
-		field := make(RowField)
+		field := make(table.RowField)
 		field[res.Header[0]] = Name(ele.BookTitle).String()
 		field[res.Header[1]] = Age(ele.AvgAge).String()
 

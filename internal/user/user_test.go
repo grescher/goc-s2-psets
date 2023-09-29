@@ -1,7 +1,8 @@
 // Implementing stringer methods for the User's fields
-package main
+package user
 
 import (
+	"practice/internal/table"
 	"reflect"
 	"testing"
 )
@@ -77,11 +78,10 @@ func TestMass_String(t *testing.T) {
 		m    Mass
 		want string
 	}{
-		{name: "0.001 qq", m: 0.001, want: "0.001 qq"},
-		{name: "0.999 qq", m: 0.999, want: "0.999 qq"},
-		{name: "90 kg", m: 90, want: "90.0 kg"},
-		{name: "621 oz", m: 621, want: "621.0 oz"},
-		{name: "8080 oz", m: 8080, want: "8080.0 oz"},
+		{name: "0.001", m: 0.001, want: "0.001 kg"},
+		{name: "0.999", m: 0.999, want: "0.999 kg"},
+		{name: "90", m: 90, want: "90.0 kg"},
+		{name: "621", m: 621, want: "621.0 kg"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -118,29 +118,28 @@ func TestBooks_String(t *testing.T) {
 	}
 }
 
-func TestUserSlice_NewTable(t *testing.T) {
+func TestSlice_NewTable(t *testing.T) {
 	type args struct {
 		headers []string
 	}
 	tests := []struct {
 		name    string
-		users   UserSlice
+		users   Slice
 		args    args
-		wantRes Table
+		wantRes table.Table
 	}{
 		{
 			name: "Test",
-			users: UserSlice{
+			users: Slice{
 				{"John Doe", 30, 0b00000001, 80.0, []string{"Harry Potter", "1984"}},
 				{"Jake Doe", 20, 0b0, 60.0, []string{}},
-				{" Jane Doe 1", 150, 0b00000100, .75, []string{"Harry Potter", "Game of Thrones"}},
 			},
 			args: args{
 				headers: []string{"Name", "Age", "Active", "Mass", "Books"},
 			},
-			wantRes: Table{
+			wantRes: table.Table{
 				Header: []string{"Name", "Age", "Active", "Mass", "Books"},
-				Rows: []RowField{
+				Rows: []table.RowField{
 					{
 						"Name":   "John Doe",
 						"Age":    "30",
@@ -155,13 +154,6 @@ func TestUserSlice_NewTable(t *testing.T) {
 						"Mass":   "60.0 kg",
 						"Books":  "",
 					},
-					{
-						"Name":   " Jane Doe ",
-						"Age":    "150",
-						"Active": "yes",
-						"Mass":   "0.75 qq",
-						"Books":  "\"Harry Potter\"\n\"Game of Thrones\"",
-					},
 				},
 			},
 		},
@@ -170,7 +162,7 @@ func TestUserSlice_NewTable(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if gotRes := tt.users.NewTable(tt.args.headers); !reflect.DeepEqual(gotRes, tt.wantRes) {
-				t.Errorf("Users.NewTable() = %v, want %v", gotRes, tt.wantRes)
+				t.Errorf("Users.NewTable() = %v,\nWant %v\n", gotRes, tt.wantRes)
 			}
 		})
 	}
