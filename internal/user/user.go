@@ -12,11 +12,11 @@ import (
 const massPrecision = 3
 
 type User struct {
-	Name        string   // uint8(length) + [length]byte
-	Age         uint8    // 1 bit bool (active field) + 63 bit uint (age field)
-	ActiveIndex uint8    // (see above)
-	Mass        float64  // regular float64
-	Books       []string // uint8(all books length) + [length]byte, all books come as a single comma-separated string
+	Name        string
+	Age         uint8
+	ActiveIndex uint8
+	Mass        float64
+	Books       []string
 }
 
 type Name string
