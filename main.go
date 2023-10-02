@@ -9,17 +9,17 @@ import (
 )
 
 func main() {
-	storage, err := storage.NewStorage()
+	strg, err := storage.NewStorage()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer storage.Close()
+	defer closeStorage(strg)
 
-	users, err := user.Decode(storage.Reader())
+	users, err := user.Decode(strg.Reader())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer saveSnapshot(storage, &users)
+	defer saveSnapshot(strg, &users)
 
 	userHeaders := []string{"Name", "Age", "Active", "Mass", "Books"}
 
@@ -28,9 +28,18 @@ func main() {
 	fmt.Println("Number of active users:", user.Slice(users).NumOfActiveUsers())
 }
 
-func saveSnapshot(storage *storage.Storage, users *[]user.User) {
-	data := user.Encode(*users)
-	storage.Write(data)
+func closeStorage(strg *storage.Storage) {
+	if err := strg.Close(); err != nil {
+		log.Fatal("closeStorage: ", err)
+	}
+	log.Println("Done. Bye.")
+}
+
+func saveSnapshot(strg *storage.Storage, users *[]user.User) {
+	log.Print("Saving snapshot... ")
+	if err := strg.SaveSnapshot(users); err != nil {
+		log.Fatal("saveSnapshot: ", err)
+	}
 }
 
 func PrintData(data table.Printer, headers []string) {
