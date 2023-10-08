@@ -1,5 +1,6 @@
 # Directory with the data files
-datafiles
+datafiles/*
+!datafiles/original.database
 
 # VS Code
 .vscode/*
