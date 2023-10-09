@@ -25,6 +25,11 @@ type Printer interface {
 	NewTable([]string) Table
 }
 
+func PrintData(data Printer, headers []string) {
+	table := data.NewTable(headers)
+	table.Print()
+}
+
 func (t *Table) Print() {
 	t.setColumnWidth()
 	t.printHeaders()

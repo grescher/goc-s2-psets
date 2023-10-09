@@ -11,6 +11,8 @@ import (
 
 const massPrecision = 3
 
+var Headers = []string{"Name", "Age", "Active", "Mass", "Books"}
+
 type User struct {
 	Name        string
 	Age         uint8

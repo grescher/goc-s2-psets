@@ -21,10 +21,8 @@ func main() {
 	}
 	defer saveSnapshot(strg, &users)
 
-	userHeaders := []string{"Name", "Age", "Active", "Mass", "Books"}
-
 	user.SortUsersBySumOfAvgAge(users, user.AvgAgeOfReadersPerBook(users))
-	PrintData(user.Slice(users), userHeaders)
+	table.PrintData(user.Slice(users), user.Headers)
 	fmt.Println("Number of active users:", user.Slice(users).NumOfActiveUsers())
 }
 
@@ -40,9 +38,4 @@ func saveSnapshot(strg *storage.Storage, users *[]user.User) {
 	if err := strg.SaveSnapshot(users); err != nil {
 		log.Fatal("saveSnapshot: ", err)
 	}
-}
-
-func PrintData(data table.Printer, headers []string) {
-	table := data.NewTable(headers)
-	table.Print()
 }
