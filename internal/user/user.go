@@ -97,6 +97,16 @@ func (u Slice) FindMass(m float64) (find User, ok bool) {
 	return find, ok
 }
 
+func (u Slice) FindName(name string) (int, bool) {
+	slices.SortFunc[User](u, func(a, b User) bool {
+		return a.Name < b.Name
+	})
+	i, ok := slices.BinarySearchFunc[User, string](u, name, func(usr User, s string) int {
+		return strings.Compare(usr.Name, s)
+	})
+	return i, ok
+}
+
 func (u Slice) NumOfActiveUsers() (n int) {
 	for _, user := range u {
 		if user.ActiveIndex > 0 {

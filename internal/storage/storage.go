@@ -18,12 +18,11 @@ const (
 )
 
 type Storage struct {
-	file    *os.File
-	path    string
-	updated bool
+	file *os.File
+	path string
 }
 
-// Open opens the storage file.
+// NewStorage returns a new Storage...
 func NewStorage() (strg *Storage, err error) {
 	var fileDir, fileName string
 	if len(os.Args) < 2 {
@@ -50,18 +49,15 @@ func NewStorage() (strg *Storage, err error) {
 	return strg, nil
 }
 
+// Open opens the storage file.
 func (s *Storage) Open() (err error) {
 	flags := os.O_CREATE | os.O_RDWR | os.O_APPEND
 	s.file, err = os.OpenFile(s.path, flags, fs.FileMode(filePerms))
 	return err
 }
 
-func (s *Storage) Reader() io.Reader {
-	return s.file
-}
-
-func (s *Storage) Writer() io.Writer {
-	return s.file
+func (s *Storage) Close() error {
+	return s.file.Close()
 }
 
 func (s *Storage) Sync() error {
@@ -106,8 +102,16 @@ func (s *Storage) SaveSnapshot(users *[]user.User) (err error) {
 	return nil
 }
 
+func (s *Storage) Reader() io.Reader {
+	return s.file
+}
+
+func (s *Storage) Writer() io.Writer {
+	return s.file
+}
+
 func (s *Storage) Write(data []byte) (n int, err error) {
-	writer := bufio.NewWriter(s.file)
+	writer := bufio.NewWriter(s.Writer())
 	n, err = writer.Write(data)
 	if err != nil {
 		return 0, err
@@ -115,11 +119,11 @@ func (s *Storage) Write(data []byte) (n int, err error) {
 	if err = writer.Flush(); err != nil {
 		return 0, err
 	}
-	s.updated = true
-
 	return n, nil
 }
 
-func (s *Storage) Close() error {
-	return s.file.Close()
+// Name returns the name of the file of the storage.
+func (s *Storage) Name() string {
+	_, name := filepath.Split(s.file.Name())
+	return name
 }

@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"practice/internal/storage"
-	"practice/internal/table"
+	"practice/internal/tui"
 	"practice/internal/user"
 )
 
@@ -21,9 +20,7 @@ func main() {
 	}
 	defer saveSnapshot(strg, &users)
 
-	user.SortUsersBySumOfAvgAge(users, user.AvgAgeOfReadersPerBook(users))
-	table.PrintData(user.Slice(users), user.Headers)
-	fmt.Println("Number of active users:", user.Slice(users).NumOfActiveUsers())
+	tui.Prompt(strg, &users)
 }
 
 func closeStorage(strg *storage.Storage) {
