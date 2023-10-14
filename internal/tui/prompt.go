@@ -3,6 +3,7 @@ package tui
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"practice/internal/storage"
@@ -23,9 +24,15 @@ func Prompt(strg *storage.Storage, users *[]user.User) {
 
 		switch strings.ToUpper(in) {
 		case "ADD":
-			addUser(strg, users)
+			if err := addUser(strg, users); err != nil {
+				fmt.Println("failed to add user:", err)
+			}
 		case "REMOVE":
-			rmUser(strg, users)
+			if err := rmUser(strg, users); err != nil {
+				fmt.Println("failed to remove user:", err)
+				continue
+			}
+			fmt.Println("User deleted")
 		case "SHOW":
 			show(*users)
 		case "HELP":
@@ -33,7 +40,7 @@ func Prompt(strg *storage.Storage, users *[]user.User) {
 		case "QUIT":
 			return
 		default:
-			fmt.Printf("Unknown operator %q. Enter \".help\" for usage hints.\n", in)
+			fmt.Printf("Unknown operator %q. Enter \"help\" for usage hints.\n", in)
 		}
 	}
 }
@@ -49,24 +56,42 @@ show    Prints the contents of the table`,
 }
 
 // addUser adds a new user to the slice of users and writes them to the storage.
-func addUser(strg *storage.Storage, users *[]user.User) {
+func addUser(strg *storage.Storage, users *[]user.User) (err error) {
 	if len(*users) > user.MaxNumOfUsers {
-		fmt.Println("There's no free slots for a new user.")
-		return
+		return errors.New("no free slots for a new user")
 	}
 	reader := bufio.NewReader(os.Stdin)
 
 	// Read the new user's data.
-	name := promptUserName(reader)
-	if name == "" {
-		return
-	}
-	age := promptUserAge(reader)
-	activeIndex := promptUserActiveStatus(reader, *users)
-	mass := promptUserMass(reader)
 
+	// - name:
+	name, err := promptUserName(reader)
+	if err != nil {
+		return err
+	}
+	if name == "" {
+		return errors.New("no name is entered")
+	}
+	// - age:
+	age, err := promptUserAge(reader)
+	if err != nil {
+		return err
+	}
+	// - active index/status:
+	activeIndex, err := promptUserActiveStatus(reader, *users)
+	if err != nil {
+		return err
+	}
+	// - mass:
+	mass, err := promptUserMass(reader)
+	if err != nil {
+		return err
+	}
+	// - books:
 	var books []string
-	promptUserBooks(reader, &books)
+	if err = promptUserBooks(reader, &books); err != nil {
+		return err
+	}
 
 	// Add a new user to the users.
 	newUser := user.User{
@@ -79,50 +104,59 @@ func addUser(strg *storage.Storage, users *[]user.User) {
 	*users = append(*users, newUser)
 
 	// Save a new user to the storage.
-	user.EncodeUser(strg.Writer(), newUser)
-	strg.Sync()
+	if err = user.EncodeUser(strg.Writer(), newUser); err != nil {
+		return err
+	}
+	if err = strg.Sync(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // promptUserName prompts for a name of a new user.
-func promptUserName(reader *bufio.Reader) string {
+func promptUserName(reader *bufio.Reader) (input string, err error) {
 	fmt.Print("Enter name: ")
-	input, err := reader.ReadString('\n')
+
+	input, err = reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Couldn't read the user's name:", err)
-		return ""
+		return "", fmt.Errorf("couldn't read name: %v", err)
 	}
-	return strings.TrimSpace(input)
+
+	return strings.TrimSpace(input), nil
 }
 
 // promptUserAge prompts for an age of a new user.
-func promptUserAge(reader *bufio.Reader) uint8 {
+func promptUserAge(reader *bufio.Reader) (uint8, error) {
 	fmt.Print("Enter age: ")
+
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Couldn't read the user's age:", err)
-		return 0
+		return 0, fmt.Errorf("couldn't read age: %v", err)
 	}
 	input = strings.TrimSpace(input)
+
 	if input == "" {
-		return 0
+		return 0, nil
 	}
 	age, err := strconv.ParseUint(input, 10, 8)
 	if err != nil {
-		fmt.Println("Unknown type of the user's age. Try again.")
-		return promptUserAge(reader)
+		return 0, err
 	}
-	return uint8(age)
+
+	return uint8(age), nil
 }
 
 // promptUserActiveStatus prompts if a new user is active and generates the activeStatus index.
-func promptUserActiveStatus(reader *bufio.Reader, users []user.User) (activeStatus uint8) {
+func promptUserActiveStatus(reader *bufio.Reader, users []user.User) (activeStatus uint8, err error) {
 	fmt.Print("Is the user is active now? [yes/no]: ")
+
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Couldn't read the user's active status:", err)
-		input = ""
+		return 0, fmt.Errorf("couldn't read active status: %v", err)
 	}
 	input = strings.TrimSpace(input)
+
 	switch strings.ToUpper(input) {
 	case "YES", "Y":
 		activeStatus = 1
@@ -135,64 +169,64 @@ func promptUserActiveStatus(reader *bufio.Reader, users []user.User) (activeStat
 	// TODO: improve the activeStatus index generation to avoid duplicates.
 	activeStatus <<= len(users)
 
-	return activeStatus
+	return activeStatus, nil
 }
 
 // promptUserMass prompts for a mass of a new user.
-func promptUserMass(reader *bufio.Reader) (mass float64) {
+func promptUserMass(reader *bufio.Reader) (mass float64, err error) {
 	fmt.Print("Enter the user's mass: ")
+
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Couldn't read the user's mass:", err)
-		return 0.0
+		return 0.0, fmt.Errorf("couldn't read mass: %v", err)
 	}
 	input = strings.TrimSpace(input)
+
 	mass, err = strconv.ParseFloat(input, 64)
 	if err != nil {
-		fmt.Println("Unknown type of the mass. Please, try again with a number.")
-		return promptUserMass(reader)
+		return 0.0, fmt.Errorf("couldn't read mass: %v", err)
 	}
 	if mass < 0.0 {
 		mass = 0.0
 	}
-	return user.VerifyMass(mass)
+
+	return user.VerifyMass(mass), nil
 }
 
 // promptUserBooks prompts for a list of books a new user has read.
-func promptUserBooks(reader *bufio.Reader, books *[]string) {
+func promptUserBooks(reader *bufio.Reader, books *[]string) error {
 	fmt.Print("Enter a name of book: ")
+
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Couldn't read the input:", err)
-		return
+		return fmt.Errorf("couldn't read book name: %v", err)
 	}
 	input = strings.TrimSpace(input)
+
 	if input == "" {
-		return
+		return nil //-> exit point.
 	}
 
 	*books = append(*books, input)
-	promptUserBooks(reader, books)
+	return promptUserBooks(reader, books)
 }
 
 // rmUser searches for a user by name, and if it finds them, removes them from the slice
 // of users; after that, the snapshot of the slice of users is saved in the storage.
-func rmUser(strg *storage.Storage, users *[]user.User) {
+func rmUser(strg *storage.Storage, users *[]user.User) (err error) {
 	reader := bufio.NewReader(os.Stdin)
 
 	// Find the user by name. Determine the user's index.
 	fmt.Print("Enter the name of user you want to remove: ")
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Couldn't remove the user:", err)
-		return
+		return fmt.Errorf("couldn't read name: %v", err)
 	}
 	name := strings.TrimSpace(input)
 
 	i, ok := user.Slice(*users).FindName(name)
 	if !ok {
-		fmt.Printf("Couldn't find the user %q\n", name)
-		return
+		return fmt.Errorf("couldn't find the user %q", name)
 	}
 
 	// Remove the user from the users slice.
@@ -200,7 +234,11 @@ func rmUser(strg *storage.Storage, users *[]user.User) {
 	*users = (*users)[:len(*users)-1]
 
 	// Save the snapshot.
-	strg.SaveSnapshot(users)
+	if err = strg.SaveSnapshot(users); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func show(users []user.User) {
