@@ -5,7 +5,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"os"
+	"io"
+	"log"
 	"practice/internal/storage"
 	"practice/internal/table"
 	"practice/internal/user"
@@ -13,40 +14,44 @@ import (
 	"strings"
 )
 
-func Prompt(strg *storage.Storage, users *[]user.User) {
+// End of session.
+var ErrEndOfSession = errors.New("end of session")
+
+func Prompt(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User) error {
 	fmt.Println("Enter \"help\" for usage hints.")
 
 	for {
-		fmt.Printf("%s > ", strg.Name())
+		fmt.Fprintf(w, "%s > ", strg.Name())
 
 		var in string
-		fmt.Scanf("%s", &in)
+		fmt.Fscanf(r, "%s", &in)
 
 		switch strings.ToUpper(in) {
 		case "ADD":
-			if err := addUser(strg, users); err != nil {
-				fmt.Println("failed to add user:", err)
+			if err := addUser(w, r, strg, users); err != nil {
+				log.Println("failed to add user:", err)
 			}
 		case "REMOVE":
-			if err := rmUser(strg, users); err != nil {
-				fmt.Println("failed to remove user:", err)
+			if err := rmUser(w, r, strg, users); err != nil {
+				log.Println("failed to remove user:", err)
 				continue
 			}
-			fmt.Println("User deleted")
+			fmt.Fprintln(w, "User deleted")
 		case "SHOW":
-			show(*users)
+			show(w, *users)
 		case "HELP":
-			printHelp()
+			printHelp(w)
 		case "QUIT":
-			return
+			return ErrEndOfSession
 		default:
 			fmt.Printf("Unknown operator %q. Enter \"help\" for usage hints.\n", in)
 		}
 	}
 }
 
-func printHelp() {
-	fmt.Println(
+func printHelp(w io.Writer) {
+	fmt.Fprintln(
+		w,
 		`add     Adds user to the database
 help    Show help
 quit    Exit this program
@@ -56,16 +61,16 @@ show    Prints the contents of the table`,
 }
 
 // addUser adds a new user to the slice of users and writes them to the storage.
-func addUser(strg *storage.Storage, users *[]user.User) (err error) {
+func addUser(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User) error {
+	// Check if there is space for a new user.
 	if len(*users) > user.MaxNumOfUsers {
 		return errors.New("no free slots for a new user")
 	}
-	reader := bufio.NewReader(os.Stdin)
 
 	// Read the new user's data.
-
+	rb := bufio.NewReader(r)
 	// - name:
-	name, err := promptUserName(reader)
+	name, err := promptUserName(w, rb)
 	if err != nil {
 		return err
 	}
@@ -73,23 +78,23 @@ func addUser(strg *storage.Storage, users *[]user.User) (err error) {
 		return errors.New("no name is entered")
 	}
 	// - age:
-	age, err := promptUserAge(reader)
+	age, err := promptUserAge(w, rb)
 	if err != nil {
 		return err
 	}
 	// - active index/status:
-	activeIndex, err := promptUserActiveStatus(reader, *users)
+	activeIndex, err := promptUserActiveStatus(w, rb, *users)
 	if err != nil {
 		return err
 	}
 	// - mass:
-	mass, err := promptUserMass(reader)
+	mass, err := promptUserMass(w, rb)
 	if err != nil {
 		return err
 	}
 	// - books:
 	var books []string
-	if err = promptUserBooks(reader, &books); err != nil {
+	if err = promptUserBooks(w, rb, &books); err != nil {
 		return err
 	}
 
@@ -115,10 +120,10 @@ func addUser(strg *storage.Storage, users *[]user.User) (err error) {
 }
 
 // promptUserName prompts for a name of a new user.
-func promptUserName(reader *bufio.Reader) (input string, err error) {
-	fmt.Print("Enter name: ")
+func promptUserName(w io.Writer, r *bufio.Reader) (input string, err error) {
+	fmt.Fprint(w, "Enter name: ")
 
-	input, err = reader.ReadString('\n')
+	input, err = r.ReadString('\n')
 	if err != nil {
 		return "", fmt.Errorf("couldn't read name: %v", err)
 	}
@@ -127,10 +132,10 @@ func promptUserName(reader *bufio.Reader) (input string, err error) {
 }
 
 // promptUserAge prompts for an age of a new user.
-func promptUserAge(reader *bufio.Reader) (uint8, error) {
-	fmt.Print("Enter age: ")
+func promptUserAge(w io.Writer, r *bufio.Reader) (uint8, error) {
+	fmt.Fprint(w, "Enter age: ")
 
-	input, err := reader.ReadString('\n')
+	input, err := r.ReadString('\n')
 	if err != nil {
 		return 0, fmt.Errorf("couldn't read age: %v", err)
 	}
@@ -148,10 +153,10 @@ func promptUserAge(reader *bufio.Reader) (uint8, error) {
 }
 
 // promptUserActiveStatus prompts if a new user is active and generates the activeStatus index.
-func promptUserActiveStatus(reader *bufio.Reader, users []user.User) (activeStatus uint8, err error) {
-	fmt.Print("Is the user is active now? [yes/no]: ")
+func promptUserActiveStatus(w io.Writer, r *bufio.Reader, users []user.User) (activeStatus uint8, err error) {
+	fmt.Fprint(w, "Is the user is active now? [yes/no]: ")
 
-	input, err := reader.ReadString('\n')
+	input, err := r.ReadString('\n')
 	if err != nil {
 		return 0, fmt.Errorf("couldn't read active status: %v", err)
 	}
@@ -163,8 +168,8 @@ func promptUserActiveStatus(reader *bufio.Reader, users []user.User) (activeStat
 	case "NO", "N", "":
 		activeStatus = 0
 	default:
-		fmt.Println("Please, provide with [yes/no], [YyNn].")
-		return promptUserActiveStatus(reader, users)
+		fmt.Fprint(w, "Please, provide with [yes/no], [YyNn].")
+		return promptUserActiveStatus(w, r, users)
 	}
 	// TODO: improve the activeStatus index generation to avoid duplicates.
 	activeStatus <<= len(users)
@@ -173,10 +178,10 @@ func promptUserActiveStatus(reader *bufio.Reader, users []user.User) (activeStat
 }
 
 // promptUserMass prompts for a mass of a new user.
-func promptUserMass(reader *bufio.Reader) (mass float64, err error) {
-	fmt.Print("Enter the user's mass: ")
+func promptUserMass(w io.Writer, r *bufio.Reader) (mass float64, err error) {
+	fmt.Fprint(w, "Enter the user's mass: ")
 
-	input, err := reader.ReadString('\n')
+	input, err := r.ReadString('\n')
 	if err != nil {
 		return 0.0, fmt.Errorf("couldn't read mass: %v", err)
 	}
@@ -194,10 +199,10 @@ func promptUserMass(reader *bufio.Reader) (mass float64, err error) {
 }
 
 // promptUserBooks prompts for a list of books a new user has read.
-func promptUserBooks(reader *bufio.Reader, books *[]string) error {
-	fmt.Print("Enter a name of book: ")
+func promptUserBooks(w io.Writer, r *bufio.Reader, books *[]string) error {
+	fmt.Fprint(w, "Enter a name of book: ")
 
-	input, err := reader.ReadString('\n')
+	input, err := r.ReadString('\n')
 	if err != nil {
 		return fmt.Errorf("couldn't read book name: %v", err)
 	}
@@ -208,16 +213,16 @@ func promptUserBooks(reader *bufio.Reader, books *[]string) error {
 	}
 
 	*books = append(*books, input)
-	return promptUserBooks(reader, books)
+	return promptUserBooks(w, r, books)
 }
 
 // rmUser searches for a user by name, and if it finds them, removes them from the slice
 // of users; after that, the snapshot of the slice of users is saved in the storage.
-func rmUser(strg *storage.Storage, users *[]user.User) (err error) {
-	reader := bufio.NewReader(os.Stdin)
+func rmUser(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User) (err error) {
+	reader := bufio.NewReader(r)
 
 	// Find the user by name. Determine the user's index.
-	fmt.Print("Enter the name of user you want to remove: ")
+	fmt.Fprint(w, "Enter the name of user you want to remove: ")
 	input, err := reader.ReadString('\n')
 	if err != nil {
 		return fmt.Errorf("couldn't read name: %v", err)
@@ -241,7 +246,7 @@ func rmUser(strg *storage.Storage, users *[]user.User) (err error) {
 	return nil
 }
 
-func show(users []user.User) {
-	table.PrintData(user.Slice(users), user.Headers)
-	fmt.Println("Number of active users:", user.Slice(users).NumOfActiveUsers())
+func show(w io.Writer, users []user.User) {
+	table.PrintData(w, user.Slice(users), user.Headers)
+	fmt.Fprintln(w, "Number of active users:", user.Slice(users).NumOfActiveUsers())
 }

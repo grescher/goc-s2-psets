@@ -2,6 +2,7 @@ package table
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"unicode/utf8"
 )
@@ -25,16 +26,16 @@ type Printer interface {
 	NewTable([]string) Table
 }
 
-func PrintData(data Printer, headers []string) {
+func PrintData(w io.Writer, data Printer, headers []string) {
 	table := data.NewTable(headers)
-	table.Print()
+	table.Print(w)
 }
 
-func (t *Table) Print() {
+func (t *Table) Print(w io.Writer) {
 	t.setColumnWidth()
-	t.printHeaders()
-	t.printSeparator(separatorCol)
-	t.printRows()
+	t.printHeaders(w)
+	t.printSeparator(w, separatorCol)
+	t.printRows(w)
 }
 
 func (t *Table) setColumnWidth() {
@@ -59,7 +60,7 @@ func (t *Table) setColumnWidth() {
 	t.ColumnWidth = cw
 }
 
-func (t *Table) printHeaders() {
+func (t *Table) printHeaders(w io.Writer) {
 	var fields []string
 	for _, h := range t.Header {
 		lenOfH := utf8.RuneCountInString(h)
@@ -69,27 +70,27 @@ func (t *Table) printHeaders() {
 		fields = append(fields, field)
 	}
 	headerLine := strings.Join(fields, separatorCol)
-	fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, headerLine)
+	fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", separatorCol, headerLine)
 }
 
-func (t *Table) printSeparator(sep string) {
+func (t *Table) printSeparator(w io.Writer, sep string) {
 	var fields []string
 	for _, h := range t.Header {
 		line := strings.Repeat(separatorLine, t.ColumnWidth[h]+2)
 		fields = append(fields, line)
 	}
 	line := strings.Join(fields, sep)
-	fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, line)
+	fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", separatorCol, line)
 }
 
-func (t *Table) printRows() {
+func (t *Table) printRows(w io.Writer) {
 	for _, row := range t.Rows {
 		lines := getLinesToPrint(t.Header, t.ColumnWidth, row)
 
 		for _, line := range lines {
-			fmt.Printf("%[1]s%[2]s%[1]s\n", separatorCol, line)
+			fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", separatorCol, line)
 		}
-		t.printSeparator(separatorRow)
+		t.printSeparator(w, separatorRow)
 	}
 }
 

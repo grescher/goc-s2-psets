@@ -1,0 +1,68 @@
+package tcp
+
+import (
+	"io"
+	"log"
+	"net"
+	"os"
+	"practice/internal/storage"
+	"practice/internal/tui"
+	"practice/internal/user"
+)
+
+func Server(c chan int, strg *storage.Storage, users *[]user.User) {
+	defer func() {
+		c <- 0
+	}()
+
+	// Create listener.
+	listener, err := net.Listen("tcp", ":8000")
+	if err != nil {
+		log.Fatal("tcp.Server: failed to create a listener: ", err)
+	}
+	defer listener.Close()
+
+	// Listen for a new connection.
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Println("tcp.Server: failed to accept a connection:", err)
+			continue
+		}
+
+		err = handleConn(conn, strg, users)
+		if err == tui.ErrEndOfSession {
+			conn.Write([]byte("Session is finished. Press ENTER key."))
+		}
+		if err != nil && err != tui.ErrEndOfSession {
+			log.Println("tcp.Server: handling connection:", err)
+		}
+		conn.Close()
+	}
+}
+
+func handleConn(conn net.Conn, strg *storage.Storage, users *[]user.User) error {
+	return tui.Prompt(conn, conn, strg, users)
+}
+
+func Client(c chan int) {
+	defer func() {
+		c <- 0
+	}()
+
+	conn, err := net.Dial("tcp", "localhost:8000")
+	if err != nil {
+		log.Fatal("tcp.Client: failed connect to server: ", err)
+	}
+	defer conn.Close()
+
+	go func() {
+		if _, err = io.Copy(os.Stdout, conn); err != nil {
+			log.Fatal("tcp.Client: failed to redirect from connection to Stdout: ", err)
+		}
+	}()
+
+	if _, err = io.Copy(conn, os.Stdin); err != nil {
+		log.Fatal("tcp.Client: failed to redirect from Stdin to connection: ", err)
+	}
+}

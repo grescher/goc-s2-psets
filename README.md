@@ -10,7 +10,7 @@
 |  6 | Спільний індекс — стан активності користувачів                 | [#10](https://github.com/grescher/goc-s2-psets/issues/10) | [p6.0](https://github.com/grescher/goc-s2-psets/releases/tag/p6.0) |
 |  7 | Збереження у файл. Елементарний інтерпретатор на `Scanf`       | [#12](https://github.com/grescher/goc-s2-psets/issues/12) | [p7.0](https://github.com/grescher/goc-s2-psets/releases/tag/p7.0) |
 |  8 | Розпізнавання виразів з цифрами. Буферизований ввод.           | [#13](https://github.com/grescher/goc-s2-psets/issues/13) | |
-|  9 | Пересилання даних між клієнтом і сервером                      | [#14](https://github.com/grescher/goc-s2-psets/issues/14) | |
+|  9 | Пересилання даних між клієнтом і сервером                      | [#14](https://github.com/grescher/goc-s2-psets/issues/14) | [p8.0](https://github.com/grescher/goc-s2-psets/releases/tag/p8.0)|
 | 10 | http-сервер, який отримує дані з БД (API)                      | [#15](https://github.com/grescher/goc-s2-psets/issues/15) | |
 | 11 | Реалізація одночасних запитів на http-сервер                   | | |
 | 12 | Запустити наш застосунок в Докері (Dockerfile)                 | [#17](https://github.com/grescher/goc-s2-psets/issues/17) | |
