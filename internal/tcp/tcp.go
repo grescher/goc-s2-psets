@@ -31,9 +31,6 @@ func Server(c chan int, strg *storage.Storage, users *[]user.User) {
 		}
 
 		err = handleConn(conn, strg, users)
-		if err == tui.ErrEndOfSession {
-			conn.Write([]byte("Session is finished. Press ENTER key."))
-		}
 		if err != nil && err != tui.ErrEndOfSession {
 			log.Println("tcp.Server: handling connection:", err)
 		}
@@ -56,6 +53,7 @@ func Client(c chan int) {
 	}
 	defer conn.Close()
 
+	// TODO fix the "tcp.Client: failed to redirect from Stdin to connection: readfrom tcp 127.0.0.1:45912->127.0.0.1:8000: write tcp 127.0.0.1:45912->127.0.0.1:8000: write: broken pipe"
 	go func() {
 		if _, err = io.Copy(os.Stdout, conn); err != nil {
 			log.Fatal("tcp.Client: failed to redirect from connection to Stdout: ", err)
