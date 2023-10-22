@@ -53,14 +53,13 @@ func Client(c chan int) {
 	}
 	defer conn.Close()
 
-	// TODO fix the "tcp.Client: failed to redirect from Stdin to connection: readfrom tcp 127.0.0.1:45912->127.0.0.1:8000: write tcp 127.0.0.1:45912->127.0.0.1:8000: write: broken pipe"
 	go func() {
 		if _, err = io.Copy(os.Stdout, conn); err != nil {
-			log.Fatal("tcp.Client: failed to redirect from connection to Stdout: ", err)
+			log.Println("tcp.Client: failed to redirect from connection to Stdout:", err)
 		}
 	}()
 
 	if _, err = io.Copy(conn, os.Stdin); err != nil {
-		log.Fatal("tcp.Client: failed to redirect from Stdin to connection: ", err)
+		log.Println("tcp.Client: failed to redirect from Stdin to connection:", err)
 	}
 }

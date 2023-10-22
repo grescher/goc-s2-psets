@@ -14,11 +14,13 @@ import (
 	"strings"
 )
 
-// End of session.
-var ErrEndOfSession = errors.New("end of session")
+var (
+	ErrEndOfSession = errors.New("end of session")
+	ErrUserNotFound = errors.New("user is not found")
+)
 
 func Prompt(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User) error {
-	fmt.Println("Enter \"help\" for usage hints.")
+	fmt.Fprintln(w, "Enter \"help\" for usage hints.")
 
 	for {
 		fmt.Fprintf(w, "%s > ", strg.Name())
@@ -32,11 +34,15 @@ func Prompt(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User)
 				log.Println("failed to add user:", err)
 			}
 		case "REMOVE":
-			if err := rmUser(w, r, strg, users); err != nil {
+			err := rmUser(w, r, strg, users)
+			switch {
+			case err == ErrUserNotFound:
+				fmt.Fprintln(w, err)
+			case err != nil:
 				log.Println("failed to remove user:", err)
-				continue
+			default:
+				fmt.Fprintln(w, "User deleted")
 			}
-			fmt.Fprintln(w, "User deleted")
 		case "SHOW":
 			show(w, *users)
 		case "HELP":
@@ -44,7 +50,7 @@ func Prompt(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User)
 		case "QUIT":
 			return ErrEndOfSession
 		default:
-			fmt.Printf("Unknown operator %q. Enter \"help\" for usage hints.\n", in)
+			fmt.Fprintf(w, "Unknown operator %q. Enter \"help\" for usage hints.\n", in)
 		}
 	}
 }
@@ -231,7 +237,7 @@ func rmUser(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User)
 
 	i, ok := user.Slice(*users).FindName(name)
 	if !ok {
-		return fmt.Errorf("couldn't find the user %q", name)
+		return ErrUserNotFound
 	}
 
 	// Remove the user from the users slice.
