@@ -156,45 +156,49 @@ func (t *Table) printRows(w io.Writer) {
 	}
 }
 
-func getLinesToPrint(header []string, columnWidth map[string]int, row map[string]string) (lines []string) {
+// getLinesToPrint returns a slice of lines that make up a table row.
+func getLinesToPrint(headers []string, columnWidth map[string]int, row map[string]string) (lines []string) {
 	var isSingleLine bool
 	for !isSingleLine {
 		isSingleLine = true
-		var chunks []string
+		var cellsOfLine []string
 
-		for _, h := range header {
-			var ok bool
-			var ch string
-
-			ch, row[h], ok = chunk(row[h], columnWidth[h])
-			if !ok {
+		for _, h := range headers {
+			cell, remainderOfContent, isRemainderLeft := getLineOfCell(row[h], columnWidth[h])
+			row[h] = remainderOfContent
+			if isRemainderLeft {
 				isSingleLine = false
 			}
-			chunks = append(chunks, ch)
+			cellsOfLine = append(cellsOfLine, cell)
 		}
-		lines = append(lines, strings.Join(chunks, symColumnLine))
+		line := strings.Join(cellsOfLine, symColumnLine)
+		lines = append(lines, line)
 	}
 	return lines
 }
 
-func chunk(str string, widthLimit int) (ch, newStr string, ok bool) {
+// getLineOfCell returns the line of cell that is prepared for printing, the remaining string
+// of the cell content if any, and a flag if there is any remaining content.
+func getLineOfCell(str string, widthLimit int) (loc, strRemainder string, hasRemainder bool) {
 	var b strings.Builder
-	ok = true
 	for i, width := 0, 0; i < len(str); {
 		r, size := utf8.DecodeRuneInString(str[i:])
 		width++
 		if width == widthLimit {
 			b.WriteRune(r)
-			newStr, ok = str[i+size:], false
+			strRemainder = str[i+size:]
+			hasRemainder = (len(strRemainder) > 0)
 			break
 		}
 		if r == '\n' {
-			newStr, ok = str[i+size:], false
+			strRemainder = str[i+size:]
+			hasRemainder = (len(strRemainder) > 0)
 			break
 		}
 		b.WriteRune(r)
 		i += size
 	}
-	ch = fmt.Sprintf(" %-*s ", widthLimit, b.String())
-	return ch, newStr, ok
+	// Assemble the line of cell.
+	loc = fmt.Sprintf(" %-*s ", widthLimit, b.String())
+	return loc, strRemainder, hasRemainder
 }
