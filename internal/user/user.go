@@ -66,17 +66,20 @@ func (b Books) String() string {
 
 type Slice []User
 
+// NewTable method satisfies the table.Printer interface.
+// It converts the slice data to strings and as a result creates a new table.Table object.
 func (users Slice) NewTable(headers []string) (res table.Table) {
-	res.Header = headers
+	res.Headers = headers
 	for _, user := range users {
-		field := make(table.RowField)
-		field[res.Header[0]] = Name(user.Name).String()
-		field[res.Header[1]] = Age(user.Age).String()
-		field[res.Header[2]] = ActiveIndex(user.ActiveIndex).String()
-		field[res.Header[3]] = Mass(user.Mass).String()
-		field[res.Header[4]] = Books(user.Books).String()
+		// Create a new row and fill it with values for each column.
+		row := make(table.Row)
+		row[res.Headers[0]] = Name(user.Name).String()
+		row[res.Headers[1]] = Age(user.Age).String()
+		row[res.Headers[2]] = ActiveIndex(user.ActiveIndex).String()
+		row[res.Headers[3]] = Mass(user.Mass).String()
+		row[res.Headers[4]] = Books(user.Books).String()
 
-		res.Rows = append(res.Rows, field)
+		res.Rows = append(res.Rows, row)
 	}
 	return res
 }

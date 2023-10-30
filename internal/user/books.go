@@ -42,14 +42,17 @@ func (a AvgAgePerBookSlice) SortByAge() {
 	})
 }
 
+// NewTable method satisfies the table.Printer interface.
+// It converts the slice data to strings and as a result creates a new table.Table object.
 func (a AvgAgePerBookSlice) NewTable(headers []string) (res table.Table) {
-	res.Header = headers
+	res.Headers = headers
 	for _, ele := range a {
-		field := make(table.RowField)
-		field[res.Header[0]] = Name(ele.BookTitle).String()
-		field[res.Header[1]] = Age(ele.AvgAge).String()
+		// Create a new row and fill it with values for each column.
+		row := make(table.Row)
+		row[res.Headers[0]] = Name(ele.BookTitle).String()
+		row[res.Headers[1]] = Age(ele.AvgAge).String()
 
-		res.Rows = append(res.Rows, field)
+		res.Rows = append(res.Rows, row)
 	}
 	return res
 }

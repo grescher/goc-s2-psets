@@ -8,17 +8,67 @@ import (
 )
 
 const (
-	widthLimit    = 60
-	separatorCol  = "|"
-	separatorRow  = "+"
-	separatorLine = "-"
+	// Limit for the column width.
+	widthLimit = 38
+
+	// Symbols to print a table border.
+	// Regular rows:
+	symLine      = "─"
+	symLineLeft  = "├"
+	symLineRight = "┤"
+	// Header rows:
+	symDoubleLine      = "═"
+	symLineDoubleLeft  = "╞"
+	symDoubleCross     = "╪"
+	symLineDoubleRight = "╡"
+	// Columns:
+	symColumnLine = "│"
+	symColumnUp   = "┬"
+	symCross      = "┼"
+	symColumnDown = "┴"
+	// Corners:
+	symCornerUpLeft    = "╭"
+	symCornerUpRight   = "╮"
+	symCornerDownLeft  = "╰"
+	symCornerDownRight = "╯"
 )
 
-type RowField map[string]string
+// Row contains values for each column in this row.
+type Row map[string]string
 
+// ColumnWidth determines width for each column.
+func (r *Row) ColumnWidths(headers []string) map[string]int {
+	cw := make(map[string]int)
+	for _, colName := range headers {
+		// cell may have more than one line
+		lines := strings.Split((*r)[colName], "\n")
+
+		for _, line := range lines {
+			width := utf8.RuneCountInString(line)
+
+			if width > widthLimit {
+				// the width of the column cannot exceed the width limit.
+				width = widthLimit
+			}
+			if width > cw[colName] {
+				cw[colName] = width
+			}
+		}
+	}
+	return cw
+}
+
+// Table type is used to print data objects that satisfy the Printer interface.
 type Table struct {
-	Header      []string
-	Rows        []RowField
+	// Headers contains the names of the columns that will be printed in the header.
+	Headers []string
+
+	// Rows contains data as slice of maps containing values for each cell of the row,
+	// i.e. []Row[columnName]cellValue.
+	Rows []Row
+
+	// Column Width contains the maximum width value for each column of the table,
+	// does not include leading and trailing spaces.
 	ColumnWidth map[string]int
 }
 
@@ -33,64 +83,76 @@ func PrintData(w io.Writer, data Printer, headers []string) {
 
 func (t *Table) Print(w io.Writer) {
 	t.setColumnWidth()
+	t.printLine(w, symCornerUpLeft, symLine, symColumnUp, symCornerUpRight)
 	t.printHeaders(w)
-	t.printSeparator(w, separatorCol)
+	t.printLine(w, symLineDoubleLeft, symDoubleLine, symDoubleCross, symLineDoubleRight)
 	t.printRows(w)
+	t.printLine(w, symCornerDownLeft, symLine, symColumnDown, symCornerDownRight)
 }
 
+// setColumnWidth scans each row of the table and determines maximum width
+// for each column.
 func (t *Table) setColumnWidth() {
-	cw := make(map[string]int)
-	for _, h := range t.Header {
-		cw[h] = utf8.RuneCountInString(h)
+	columnWidth := make(map[string]int)
+	for _, h := range t.Headers {
+		columnWidth[h] = utf8.RuneCountInString(h)
 	}
-	for _, fields := range t.Rows {
-		for _, h := range t.Header {
-			newlines := strings.Split(fields[h], "\n")
-			for _, line := range newlines {
-				width := utf8.RuneCountInString(line)
-				if width > widthLimit {
-					width = widthLimit
-				}
-				if width > cw[h] {
-					cw[h] = width
-				}
+	for _, row := range t.Rows {
+		rowWidths := row.ColumnWidths(t.Headers)
+		for _, colName := range t.Headers {
+			if rowWidths[colName] > columnWidth[colName] {
+				columnWidth[colName] = rowWidths[colName]
 			}
 		}
 	}
-	t.ColumnWidth = cw
+	t.ColumnWidth = columnWidth
 }
 
+// printHeaders prints a line of the table with the column names.
 func (t *Table) printHeaders(w io.Writer) {
-	var fields []string
-	for _, h := range t.Header {
-		lenOfH := utf8.RuneCountInString(h)
-		left := (t.ColumnWidth[h]-lenOfH)/2 + lenOfH
-		right := t.ColumnWidth[h] - left
-		field := fmt.Sprintf(" %*s%*s ", left, h, right, "")
-		fields = append(fields, field)
+	var cells []string
+	for _, hName := range t.Headers {
+		hNameLen := utf8.RuneCountInString(hName)
+
+		// Construct a string with the column name centered in the header cell.
+		columnWidth := t.ColumnWidth[hName]
+		leftSpace := (columnWidth-hNameLen)/2 + hNameLen
+		rightSpace := columnWidth - leftSpace
+		cellContent := fmt.Sprintf(" %*s%*s ", leftSpace, hName, rightSpace, "")
+		cells = append(cells, cellContent)
 	}
-	headerLine := strings.Join(fields, separatorCol)
-	fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", separatorCol, headerLine)
+	// Join cells separated by a column separation symbol into one line.
+	headerLine := strings.Join(cells, symColumnLine)
+	// Print the line with outer border symbols.
+	fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", symColumnLine, headerLine)
 }
 
-func (t *Table) printSeparator(w io.Writer, sep string) {
-	var fields []string
-	for _, h := range t.Header {
-		line := strings.Repeat(separatorLine, t.ColumnWidth[h]+2)
-		fields = append(fields, line)
+// printLine prints a line separator.
+func (t *Table) printLine(w io.Writer, left, dash, column, right string) {
+	var cells []string
+	for _, hName := range t.Headers {
+		line := strings.Repeat(dash, t.ColumnWidth[hName]+2)
+		cells = append(cells, line)
 	}
-	line := strings.Join(fields, sep)
-	fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", separatorCol, line)
+	// Join line with a symbol of column separation.
+	line := strings.Join(cells, column)
+	// Print line with edge symbols.
+	fmt.Fprintf(w, "%s%s%s\n", left, line, right)
 }
 
+// printRows prints rows of the table separated by a line.
 func (t *Table) printRows(w io.Writer) {
-	for _, row := range t.Rows {
-		lines := getLinesToPrint(t.Header, t.ColumnWidth, row)
-
+	for i, row := range t.Rows {
+		// One table row may consist of several lines.
+		lines := getLinesToPrint(t.Headers, t.ColumnWidth, row)
+		// Print lines of the current row.
 		for _, line := range lines {
-			fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", separatorCol, line)
+			fmt.Fprintf(w, "%[1]s%[2]s%[1]s\n", symColumnLine, line)
 		}
-		t.printSeparator(w, separatorRow)
+		// Print a line separator between rows.
+		if i != len(t.Rows)-1 {
+			t.printLine(w, symLineLeft, symLine, symCross, symLineRight)
+		}
 	}
 }
 
@@ -110,7 +172,7 @@ func getLinesToPrint(header []string, columnWidth map[string]int, row map[string
 			}
 			chunks = append(chunks, ch)
 		}
-		lines = append(lines, strings.Join(chunks, separatorCol))
+		lines = append(lines, strings.Join(chunks, symColumnLine))
 	}
 	return lines
 }
@@ -124,8 +186,7 @@ func chunk(str string, widthLimit int) (ch, newStr string, ok bool) {
 		if width == widthLimit {
 			b.WriteRune(r)
 			newStr, ok = str[i+size:], false
-			ch = fmt.Sprintf(" %s ", b.String())
-			return ch, newStr, ok
+			break
 		}
 		if r == '\n' {
 			newStr, ok = str[i+size:], false
