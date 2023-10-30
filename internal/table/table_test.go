@@ -8,7 +8,7 @@ import (
 func TestTable_setColumnWidth(t *testing.T) {
 	type fields struct {
 		Header      []string
-		Rows        []RowField
+		Rows        []Row
 		ColumnWidth map[string]int
 	}
 	tests := []struct {
@@ -20,7 +20,7 @@ func TestTable_setColumnWidth(t *testing.T) {
 			name: "General",
 			fields: fields{
 				Header: []string{"Name", "Age", "Active", "Mass", "Books"},
-				Rows: []RowField{
+				Rows: []Row{
 					{
 						"Name":   "John Doe",
 						"Age":    "30",
@@ -50,7 +50,7 @@ func TestTable_setColumnWidth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Table{
-				Header:      tt.fields.Header,
+				Headers:     tt.fields.Header,
 				Rows:        tt.fields.Rows,
 				ColumnWidth: tt.fields.ColumnWidth,
 			}

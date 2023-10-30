@@ -138,8 +138,8 @@ func TestSlice_NewTable(t *testing.T) {
 				headers: []string{"Name", "Age", "Active", "Mass", "Books"},
 			},
 			wantRes: table.Table{
-				Header: []string{"Name", "Age", "Active", "Mass", "Books"},
-				Rows: []table.RowField{
+				Headers: []string{"Name", "Age", "Active", "Mass", "Books"},
+				Rows: []table.Row{
 					{
 						"Name":   "John Doe",
 						"Age":    "30",
