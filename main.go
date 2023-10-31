@@ -2,25 +2,25 @@ package main
 
 import (
 	"log"
-	"practice/internal/storage"
-	"practice/internal/tcp"
-	"practice/internal/user"
+	"practice/internal/database/storage"
+	"practice/internal/database/tcp"
+	"practice/internal/database/user"
 )
 
 func main() {
 	// Open/create a storage.
 	strg, err := storage.NewStorage()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer closeStorage(strg)
+	check(err)
+	defer func() {
+		check(strg.Close())
+	}()
 
 	// Read the data from the storage.
 	users, err := user.Decode(strg.Reader())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer saveSnapshot(strg, &users)
+	check(err)
+	defer func() {
+		check(strg.SaveSnapshot(&users))
+	}()
 
 	c := make(chan int)
 	// Start a TCP server.
@@ -31,19 +31,11 @@ func main() {
 	<-c
 	<-c
 	// Show the text user interface prompt.
-	// tui.Prompt(os.Stdin, os.Stdout, strg, &users)
+	// tui.Prompt(os.Stdout, os.Stdin, strg, &users)
 }
 
-func closeStorage(strg *storage.Storage) {
-	if err := strg.Close(); err != nil {
-		log.Fatal("closeStorage: ", err)
-	}
-	log.Println("Done. Bye.")
-}
-
-func saveSnapshot(strg *storage.Storage, users *[]user.User) {
-	log.Print("Saving snapshot... ")
-	if err := strg.SaveSnapshot(users); err != nil {
-		log.Fatal("saveSnapshot: ", err)
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"practice/internal/user"
+	"practice/internal/database/user"
 )
 
 const (

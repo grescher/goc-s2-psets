@@ -2,7 +2,7 @@
 package user
 
 import (
-	"practice/internal/table"
+	"practice/internal/database/tui/table"
 	"reflect"
 	"testing"
 )

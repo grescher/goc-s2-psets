@@ -2,7 +2,7 @@ package user
 
 import (
 	"math"
-	"practice/internal/table"
+	"practice/internal/database/tui/table"
 
 	"golang.org/x/exp/slices"
 )

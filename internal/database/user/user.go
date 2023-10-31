@@ -3,7 +3,7 @@ package user
 import (
 	"fmt"
 	"math"
-	"practice/internal/table"
+	"practice/internal/database/tui/table"
 	"strings"
 
 	"golang.org/x/exp/slices"

@@ -5,9 +5,9 @@ import (
 	"log"
 	"net"
 	"os"
-	"practice/internal/storage"
-	"practice/internal/tui"
-	"practice/internal/user"
+	"practice/internal/database/storage"
+	"practice/internal/database/tui"
+	"practice/internal/database/user"
 )
 
 func Server(c chan int, strg *storage.Storage, users *[]user.User) {

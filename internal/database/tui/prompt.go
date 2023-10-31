@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"practice/internal/storage"
-	"practice/internal/table"
-	"practice/internal/user"
+	"practice/internal/database/storage"
+	"practice/internal/database/tui/table"
+	"practice/internal/database/user"
 	"strconv"
 	"strings"
 )
