@@ -62,7 +62,7 @@ func TestTable_setColumnWidth(t *testing.T) {
 	}
 }
 
-func Test_chunk(t *testing.T) {
+func Test_getLineOfCell(t *testing.T) {
 	type args struct {
 		str        string
 		widthLimit int
@@ -79,54 +79,54 @@ func Test_chunk(t *testing.T) {
 			args:       args{str: "", widthLimit: 0},
 			wantCh:     "  ",
 			wantNewStr: "",
-			wantOk:     true,
+			wantOk:     false,
 		},
 		{
 			name:       "Empty string and limit=10",
 			args:       args{str: "", widthLimit: 10},
 			wantCh:     "            ",
 			wantNewStr: "",
-			wantOk:     true,
+			wantOk:     false,
 		},
 		{
 			name:       "Exceeding Width Limit",
 			args:       args{str: "The width of this string exceeds the limit", widthLimit: 10},
 			wantCh:     " The width  ",
 			wantNewStr: "of this string exceeds the limit",
-			wantOk:     false,
+			wantOk:     true,
 		},
 		{
 			name:       "Exceeding Width Limit Locale",
 			args:       args{str: "Ширина цієї стрічки перевищує ліміт", widthLimit: 10},
 			wantCh:     " Ширина ціє ",
 			wantNewStr: "ї стрічки перевищує ліміт",
-			wantOk:     false,
+			wantOk:     true,
 		},
 		{
 			name:       "Short string",
 			args:       args{str: "Hello", widthLimit: 10},
 			wantCh:     " Hello      ",
 			wantNewStr: "",
-			wantOk:     true,
+			wantOk:     false,
 		},
 		{
 			name:       "Books: Short name",
 			args:       args{str: "\"1984\"\n\"Harry Potter\"", widthLimit: 10},
 			wantCh:     " \"1984\"     ",
 			wantNewStr: "\"Harry Potter\"",
-			wantOk:     false,
+			wantOk:     true,
 		},
 		{
 			name:       "Books: Long name",
 			args:       args{str: "\"Harry Potter\"\n\"1984\"", widthLimit: 10},
 			wantCh:     " \"Harry Pot ",
 			wantNewStr: "ter\"\n\"1984\"",
-			wantOk:     false,
+			wantOk:     true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotCh, gotNewStr, gotOk := chunk(tt.args.str, tt.args.widthLimit)
+			gotCh, gotNewStr, gotOk := getLineOfCell(tt.args.str, tt.args.widthLimit)
 			if gotCh != tt.wantCh {
 				t.Errorf("chunk() gotCh = %#v, want %#v", gotCh, tt.wantCh)
 			}
