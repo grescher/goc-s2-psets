@@ -38,8 +38,11 @@ func Server(c chan int, strg *storage.Storage, users *[]user.User) {
 	}
 }
 
-func handleConn(conn net.Conn, strg *storage.Storage, users *[]user.User) error {
-	return tui.Prompt(conn, conn, strg, users)
+func handleConn(conn net.Conn, strg *storage.Storage, users *[]user.User) (err error) {
+	if err := tui.Prompt(conn, conn, strg, users); err != nil {
+		return err
+	}
+	return nil
 }
 
 func Client(c chan int) {

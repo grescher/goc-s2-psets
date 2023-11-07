@@ -47,7 +47,7 @@ func Prompt(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User)
 			show(w, *users)
 		case "HELP":
 			printHelp(w)
-		case "QUIT":
+		case "QUIT", "EXIT":
 			return ErrEndOfSession
 		default:
 			fmt.Fprintf(w, "Unknown operator %q. Enter \"help\" for usage hints.\n", in)
@@ -58,11 +58,11 @@ func Prompt(w io.Writer, r io.Reader, strg *storage.Storage, users *[]user.User)
 func printHelp(w io.Writer) {
 	fmt.Fprintln(
 		w,
-		`add     Adds user to the database
-help    Show help
-quit    Exit this program
-remove  Removes the user from the database
-show    Prints the contents of the table`,
+		`add         Add user to the database
+help        Print this help
+quit, exit  Exit the program
+remove      Remove the user from the database
+show        Print contents of the database`,
 	)
 }
 
